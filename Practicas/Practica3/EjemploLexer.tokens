@@ -1,0 +1,13 @@
+T__0=1
+T__1=2
+T__2=3
+T__3=4
+ESPACIOS=5
+OPERADORES=6
+NUMERO=7
+STRINGS=8
+VARIABLE=9
+';'=1
+'='=2
+'('=3
+')'=4
