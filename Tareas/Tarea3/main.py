@@ -19,5 +19,5 @@ if __name__ == "__main__":
         "B": ["AB", "b"]
     }
     cyk(grammar_1, "110100")
-    # cyk(grammar_2, "00111")
-    # cyk(grammar_3, "aabbb")
+    cyk(grammar_2, "00111")
+    cyk(grammar_3, "aabbb")
