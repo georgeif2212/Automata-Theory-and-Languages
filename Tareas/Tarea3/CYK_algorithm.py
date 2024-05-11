@@ -30,10 +30,15 @@ def fillFirstColumn(
                 if len(terminal_symbol) == 1 and terminal_symbol == character:
                     table[i][0].add(non_terminal_symbol)
 
+def printFormatedTable(table: List[List[set]]) -> None:
+    for row in range(len(table)):
+        print(table[row])
+    print("")
+
 
 def cyk(grammar: Dict[str, List[List[str]]], string: str):
     string_length = len(string)
-    # Initialize the table
+    
     table = createMatrix(string_length)
 
     fillFirstColumn(grammar, string, table)
@@ -52,5 +57,14 @@ def cyk(grammar: Dict[str, List[List[str]]], string: str):
                         for production in production_list:
                             if production[0] in first_set and production[1] in second_set:
                                 table[i][j].add(non_terminal_symbol)  # Añadir el no terminal a la tabla
-    for row in table:
-        print(row)
+
+    start_symbol = list(grammar.keys())[0]
+    status = start_symbol in table[0][string_length-1]
+
+    printFormatedTable(table)
+
+    if status:
+        print(f"the string: {string} was accepted\n")
+    else:
+        print(f"the string: {string} was rejected\n")
+    print("-----------------------------------------------------")
