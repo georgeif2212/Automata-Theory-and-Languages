@@ -53,7 +53,6 @@ def cyk(grammar: Dict[str, List[List[str]]], string: str):
                     first_set = table[i][k]
                     second_set = table[i + k + 1][j - k - 1]
                     for non_terminal_symbol, production_list in grammar.items():
-                        # print(f"non_terminal_symbol:{non_terminal_symbol}, productionList:{production_list}")
                         for production in production_list:
                             if production[0] in first_set and production[1] in second_set:
                                 table[i][j].add(non_terminal_symbol)  # Añadir el no terminal a la tabla
