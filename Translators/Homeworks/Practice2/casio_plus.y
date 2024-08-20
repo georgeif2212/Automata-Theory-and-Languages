@@ -24,7 +24,7 @@ int sym[26]; /* Tabla de símbolos */
 
 %token <iValue> INTEGER
 %token <sIndex> VARIABLE
-%token WHILE IF PRINT
+%token WHILE IF PRINT FOR TO AND OR
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -52,6 +52,7 @@ stmt:
          | PRINT  expr ';'                     { $$ = opr(PRINT, 1, $2); }
          | VARIABLE '=' expr ';'               { $$ = opr('=', 2, id($1), $3); }
          | WHILE '(' expr ')' stmt             { $$ = opr(WHILE, 2, $3, $5); }
+         | FOR VARIABLE '=' expr TO expr '{' stmt_list '}' { $$ = opr(FOR, 4, id($2), $4, $6, $8); }
          | IF '(' expr ')' stmt %prec IFX      { $$ = opr(IF, 2, $3, $5); }
          | IF '(' expr ')' stmt ELSE stmt      { $$ = opr(IF, 3, $3, $5, $7); }
          | '{' stmt_list '}'                   { $$ = $2; }
@@ -76,6 +77,8 @@ expr:
          | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
          | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
          | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
+         | expr AND expr         { $$ = opr(AND, 2, $1, $3); }
+         | expr OR expr          { $$ = opr(OR, 2, $1, $3); }
          | '(' expr ')'          { $$ = $2; }
          ;
 
@@ -156,6 +159,10 @@ int ex(nodeType *p) {
             case WHILE: while(ex(p->opr.op[0]))
                            ex(p->opr.op[1]);
                         return 0;
+            case FOR: for (sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]); sym[p->opr.op[0]->id.i] <= ex(p->opr.op[2]); sym[p->opr.op[0]->id.i]++) {
+                        ex(p->opr.op[3]);
+                     }
+                     return 0;
             case IF: if (ex(p->opr.op[0]))
                         ex(p->opr.op[1]);
                      else if (p->opr.nops > 2)
@@ -177,6 +184,8 @@ int ex(nodeType *p) {
             case LE: return ex(p->opr.op[0]) <= ex(p->opr.op[1]);
             case NE: return ex(p->opr.op[0]) != ex(p->opr.op[1]);
             case EQ: return ex(p->opr.op[0]) == ex(p->opr.op[1]);
+            case AND: return ex(p->opr.op[0]) && ex(p->opr.op[1]);
+            case OR:  return ex(p->opr.op[0]) || ex(p->opr.op[1]);
          }
    }
 }
