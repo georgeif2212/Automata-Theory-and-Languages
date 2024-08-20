@@ -36,6 +36,7 @@ int yywrap();
 "if"        return IF;
 "else"      return ELSE;
 "print"     return PRINT;
+"to"        return TO; 
 
 
 
