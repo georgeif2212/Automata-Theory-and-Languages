@@ -1,6 +1,5 @@
 %{
 #include <stdlib.h>
-//#include "casio_plus.h"
 #include "y.tab.h"
 
 int yyerror(const char *s);
@@ -31,9 +30,6 @@ extern "C" int yywrap();
 "!="        return NE;
 "&&"        return AND;
 "||"        return OR;
-    
-    /*"else"      return ELSE;*/
-    /*"print"     return PRINT; */
 
 "Avanzar"           return MOVE;
 "GirarIzquierda"    return TURNLEFT;
@@ -45,10 +41,6 @@ extern "C" int yywrap();
 "Inicio"            return START;
 "Fin"               return END;
 "Apagar"            return TURNOFF;
-
-
-
-
 
 [ \t\n+]    ;       /* ignore whitespace */
 
