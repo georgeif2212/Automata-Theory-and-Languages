@@ -5,7 +5,6 @@
 
 int yyerror( char *s );
 int yylex();
-int yywrap();
 
 %}
 
