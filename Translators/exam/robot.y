@@ -84,7 +84,7 @@ expr:
          | expr AND expr         { $$ = opr(AND, 2, $1, $3); }
          | expr OR expr          { $$ = opr(OR, 2, $1, $3); }
          | ISWALL                { $$ = opr(ISWALL, 0); }
-         | NO expr               { $$ = opr(NO, 1, $2) }
+         | NO expr               { $$ = opr(NO, 1, $2); }
          | '(' expr ')'          { $$ = $2; }
          ;
 
@@ -171,7 +171,7 @@ int ex(nodeType *p) {
             case ISWALL: mazeSimulator.wallAhead();
                         return 0;
             case NO:    return !ex(p->opr.op[0]);
-            case MOVE: mazeSimulator.moveRobot();
+            case TURNLEFT: mazeSimulator.moveRobot(-1);
                         return 0;
             case TURNOFF:printf("SE TERMINÓ EL PROGRAMA\n");
                         return 0;
