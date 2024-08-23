@@ -27,8 +27,7 @@ MazeSimulator mazeSimulator;
 
 %token <iValue> INTEGER
 %token <sIndex> VARIABLE
-%token AND OR WHILE PRINT DO MOVE TURNLEFT ISWALL START END TURNOFF
-%nonassoc IFX
+%token IF AND OR WHILE PRINT DO MOVE TURNLEFT ISWALL START END TURNOFF IFX
 %nonassoc ELSE
 
 %left GE LE EQ NE '>' '<' NO
@@ -53,13 +52,14 @@ stmt:
          ';'                                   { $$ = opr(';', 2, NULL, NULL); }
          | expr ';'                            { $$ = $1; }
          | PRINT  expr ';'                     { $$ = opr(PRINT, 1, $2); }
-         // | VARIABLE '=' expr ';'               { $$ = opr('=', 2, id($1), $3); }
          | MOVE ';'                            { $$ = opr(MOVE, 0); }
          | TURNLEFT                            { $$ = opr(TURNLEFT, 0); }
-         | WHILE expr DO START stmt END   { $$ = opr(WHILE, 2, $2, $5); }
+         | WHILE expr DO START stmt_list END   { $$ = opr(WHILE, 2, $2, $5); }
          | TURNOFF                             { $$ = opr(TURNOFF, 0); }
+         | IF '(' expr ')' stmt         { $$ = opr(IF, 2, $3, $5); }
          | '{' stmt_list '}'                   { $$ = $2; }
          ;
+
 
 stmt_list:
          stmt                    { $$ = $1; }
@@ -68,6 +68,7 @@ stmt_list:
 
 expr:
          INTEGER                 { $$ = con($1); }
+         | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
          | VARIABLE        		{ $$ = id($1); }
          | ISWALL                { $$ = opr(ISWALL, 0); }
          | NO expr               { $$ = opr(NO, 1, $2); }
@@ -150,10 +151,15 @@ int ex(nodeType *p) {
             case WHILE: while(ex(p->opr.op[0]))
                            ex(p->opr.op[1]);
                         return 0;
+            case IF: if (ex(p->opr.op[0]))
+                        ex(p->opr.op[1]);
+                     return 0;
             case MOVE: mazeSimulator.drawMaze();
                         mazeSimulator.moveRobot();
+                        printf("movimiento\n");
                         return 0;
             case ISWALL: mazeSimulator.wallAhead();
+                        printf("pareeed\n");
                         return 0;
             case NO:    return !ex(p->opr.op[0]);
             case TURNLEFT: mazeSimulator.turnRobot(-1);
