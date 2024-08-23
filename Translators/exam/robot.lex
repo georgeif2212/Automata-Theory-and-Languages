@@ -34,12 +34,13 @@ extern "C" int yywrap();
     
     /*"else"      return ELSE;*/
     /*"print"     return PRINT; */
-"if"        return IF;
+
 "Avanzar"           return MOVE;
 "GirarIzquierda"    return TURNLEFT;
 "hayPared"          return ISWALL;
 "no"                return NO;
 "Mientras"          return WHILE;
+"if"                return IF;
 "Hacer"             return DO;
 "Inicio"            return START;
 "Fin"               return END;
