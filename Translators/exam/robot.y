@@ -6,7 +6,6 @@
 #include "lex.yy.c"
 #include "Maze.h"
 
-
 /* prototypes */
 nodeType *opr(int oper, int nops, ...);
 nodeType *id(int i);
@@ -27,7 +26,8 @@ MazeSimulator mazeSimulator;
 
 %token <iValue> INTEGER
 %token <sIndex> VARIABLE
-%token IF AND OR WHILE PRINT DO MOVE TURNLEFT ISWALL START END TURNOFF IFX
+%token IF WHILE PRINT DO MOVE TURNLEFT ISWALL START END TURNOFF AND OR
+%nonassoc IFX
 %nonassoc ELSE
 
 %left GE LE EQ NE '>' '<' NO
@@ -52,14 +52,15 @@ stmt:
          ';'                                   { $$ = opr(';', 2, NULL, NULL); }
          | expr ';'                            { $$ = $1; }
          | PRINT  expr ';'                     { $$ = opr(PRINT, 1, $2); }
+         | VARIABLE '=' expr ';'               { $$ = opr('=', 2, id($1), $3); }
          | MOVE ';'                            { $$ = opr(MOVE, 0); }
          | TURNLEFT                            { $$ = opr(TURNLEFT, 0); }
          | WHILE expr DO START stmt_list END   { $$ = opr(WHILE, 2, $2, $5); }
          | TURNOFF                             { $$ = opr(TURNOFF, 0); }
-         | IF '(' expr ')' stmt         { $$ = opr(IF, 2, $3, $5); }
+         | IF '(' expr ')' stmt %prec IFX      { $$ = opr(IF, 2, $3, $5); }
+         | IF '(' expr ')' stmt ELSE stmt      { $$ = opr(IF, 3, $3, $5, $7); }
          | '{' stmt_list '}'                   { $$ = $2; }
          ;
-
 
 stmt_list:
          stmt                    { $$ = $1; }
@@ -68,10 +69,23 @@ stmt_list:
 
 expr:
          INTEGER                 { $$ = con($1); }
-         | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
          | VARIABLE        		{ $$ = id($1); }
+         | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
+         | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
+         | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
+         | expr '*' expr         { $$ = opr('*', 2, $1, $3); }
+         | expr '/' expr         { $$ = opr('/', 2, $1, $3); }
+         | expr '<' expr         { $$ = opr('<', 2, $1, $3); }
+         | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
+         | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
+         | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
+         | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
+         | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
+         | expr AND expr         { $$ = opr(AND, 2, $1, $3); }
+         | expr OR expr          { $$ = opr(OR, 2, $1, $3); }
          | ISWALL                { $$ = opr(ISWALL, 0); }
          | NO expr               { $$ = opr(NO, 1, $2); }
+         | '(' expr ')'          { $$ = $2; }
          ;
 
 %%
@@ -158,9 +172,8 @@ int ex(nodeType *p) {
                         mazeSimulator.moveRobot();
                         printf("movimiento\n");
                         return 0;
-            case ISWALL: mazeSimulator.wallAhead();
-                        printf("pareeed\n");
-                        return 0;
+            case ISWALL: return mazeSimulator.wallAhead();
+
             case NO:    return !ex(p->opr.op[0]);
             case TURNLEFT: mazeSimulator.turnRobot(-1);
                         return 0;
@@ -170,6 +183,20 @@ int ex(nodeType *p) {
                         return 0;
             case ';':   ex(p->opr.op[0]);
                         return ex(p->opr.op[1]);
+            case '=':   return sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]);
+            case UMINUS: return -ex(p->opr.op[0]);
+            case '+': return ex(p->opr.op[0]) + ex(p->opr.op[1]);
+            case '-': return ex(p->opr.op[0]) - ex(p->opr.op[1]);
+            case '*': return ex(p->opr.op[0]) * ex(p->opr.op[1]);
+            case '/': return ex(p->opr.op[0]) / ex(p->opr.op[1]);
+            case '<': return ex(p->opr.op[0]) < ex(p->opr.op[1]);
+            case '>': return ex(p->opr.op[0]) > ex(p->opr.op[1]);
+            case GE: return ex(p->opr.op[0]) >= ex(p->opr.op[1]);
+            case LE: return ex(p->opr.op[0]) <= ex(p->opr.op[1]);
+            case NE: return ex(p->opr.op[0]) != ex(p->opr.op[1]);
+            case EQ: return ex(p->opr.op[0]) == ex(p->opr.op[1]);
+            case AND: return ex(p->opr.op[0]) && ex(p->opr.op[1]);
+            case OR:  return ex(p->opr.op[0]) || ex(p->opr.op[1]);
          }
    }
    return 0;
