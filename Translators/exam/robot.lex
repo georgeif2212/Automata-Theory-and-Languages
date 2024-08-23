@@ -25,12 +25,12 @@ extern "C" int yywrap();
 
 [-()<>=+*/,;{}.] { return *yytext; }
 
-    /*">="        return GE;*/
-    /*"<="        return LE;*/
-    /*"=="        return EQ;*/
-    /*"!="        return NE;*/
-    /*"&&"        return AND;*/
-    /*"||"        return OR;*/
+">="        return GE;
+"<="        return LE;
+"=="        return EQ;
+"!="        return NE;
+"&&"        return AND;
+"||"        return OR;
     
     /*"else"      return ELSE;*/
     /*"print"     return PRINT; */
