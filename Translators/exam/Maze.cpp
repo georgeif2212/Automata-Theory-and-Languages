@@ -116,8 +116,8 @@ bool MazeSimulator::wallAhead() {
 
    Square s = labyrinth.floor[pos.first][pos.second];
    if (s.entity.name == "Brick") {
-      return true;
+      return 1;
    }
 
-   return false;
+   return 0;
 }
