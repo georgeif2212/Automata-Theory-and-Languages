@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "casio_plus.h"
+#include "robot_header.h"
 #include "lex.yy.c"
+#include "Maze.cpp"
 
 /* prototypes */
 nodeType *opr(int oper, int nops, ...);
@@ -24,11 +25,11 @@ int sym[26]; /* Tabla de símbolos */
 
 %token <iValue> INTEGER
 %token <sIndex> VARIABLE
-%token WHILE IF PRINT FOR TO AND OR
+%token AND OR WHILE PRINT DO MOVE TURNLEFT ISWALL START END TURNOFF
 %nonassoc IFX
 %nonassoc ELSE
 
-%left GE LE EQ NE '>' '<'
+%left GE LE EQ NE '>' '<' NO
 %left '+' '-'
 %left '*' '/' '%'
 %nonassoc UMINUS
@@ -51,11 +52,14 @@ stmt:
          | expr ';'                            { $$ = $1; }
          | PRINT  expr ';'                     { $$ = opr(PRINT, 1, $2); }
          | VARIABLE '=' expr ';'               { $$ = opr('=', 2, id($1), $3); }
-         | WHILE '(' expr ')' stmt             { $$ = opr(WHILE, 2, $3, $5); }
-         | FOR VARIABLE '=' expr TO expr '{' stmt_list '}' { $$ = opr(FOR, 4, id($2), $4, $6, $8); }
-         | IF '(' expr ')' stmt %prec IFX      { $$ = opr(IF, 2, $3, $5); }
-         | IF '(' expr ')' stmt ELSE stmt      { $$ = opr(IF, 3, $3, $5, $7); }
-         | '{' stmt_list '}'                   { $$ = $2; }
+         | MOVE ';'                            { $$ = opr(MOVE, 0); }
+         | TURNLEFT                            { $$ = opr(TURNLEFT, 0); }
+         | WHILE expr DO START stmt END        { $$ = opr(WHILE, 2, $2, $5); }
+         | TURNOFF                             { $$ = opr(TURNOFF, 0); }
+         // | FOR VARIABLE '=' expr TO expr '{' stmt_list '}' { $$ = opr(FOR, 4, id($2), $4, $6, $8); }
+         // | IF '(' expr ')' stmt %prec IFX      { $$ = opr(IF, 2, $3, $5); }
+         // | IF '(' expr ')' stmt ELSE stmt      { $$ = opr(IF, 3, $3, $5, $7); }
+         | stmt_list                           { $$ = $1; }
          ;
 
 stmt_list:
@@ -79,6 +83,8 @@ expr:
          | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
          | expr AND expr         { $$ = opr(AND, 2, $1, $3); }
          | expr OR expr          { $$ = opr(OR, 2, $1, $3); }
+         | ISWALL                { $$ = opr(ISWALL, 0); }
+         | NO expr               { $$ = opr(NO, 1, $2) }
          | '(' expr ')'          { $$ = $2; }
          ;
 
@@ -146,6 +152,7 @@ void freeNode(nodeType *p) {
    free (p);
 }
 
+MazeSimulator mazeSimulator;
 
 int ex(nodeType *p) {
 
@@ -159,37 +166,41 @@ int ex(nodeType *p) {
             case WHILE: while(ex(p->opr.op[0]))
                            ex(p->opr.op[1]);
                         return 0;
-            case FOR: for (sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]); sym[p->opr.op[0]->id.i] <= ex(p->opr.op[2]); sym[p->opr.op[0]->id.i]++) {
-                        ex(p->opr.op[3]);
-                     }
-                     return 0;
-            case IF: if (ex(p->opr.op[0]))
-                        ex(p->opr.op[1]);
-                     else if (p->opr.nops > 2)
-                        ex(p->opr.op[2]);
-                     return 0;
+            case MOVE: mazeSimulator.moveRobot();
+                        return 0;
+            case ISWALL: mazeSimulator.wallAhead();
+                        return 0;
+            case NO:    return !ex(p->opr.op[0]);
+            case MOVE: mazeSimulator.moveRobot();
+                        return 0;
+            case TURNOFF:printf("SE TERMINÓ EL PROGRAMA\n");
+                        return 0;
+            // case IF: if (ex(p->opr.op[0]))
+            //             ex(p->opr.op[1]);
+            //          else if (p->opr.nops > 2)
+            //             ex(p->opr.op[2]);
+            //          return 0;
             case PRINT: printf("%d\n", ex(p->opr.op[0]));
                         return 0;
             case ';':   ex(p->opr.op[0]);
                         return ex(p->opr.op[1]);
             case '=':   return sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]);
-            case UMINUS: return -ex(p->opr.op[0]);
-            case '+': return ex(p->opr.op[0]) + ex(p->opr.op[1]);
-            case '-': return ex(p->opr.op[0]) - ex(p->opr.op[1]);
-            case '*': return ex(p->opr.op[0]) * ex(p->opr.op[1]);
-            case '/': return ex(p->opr.op[0]) / ex(p->opr.op[1]);
-            case '<': return ex(p->opr.op[0]) < ex(p->opr.op[1]);
-            case '>': return ex(p->opr.op[0]) > ex(p->opr.op[1]);
-            case GE: return ex(p->opr.op[0]) >= ex(p->opr.op[1]);
-            case LE: return ex(p->opr.op[0]) <= ex(p->opr.op[1]);
-            case NE: return ex(p->opr.op[0]) != ex(p->opr.op[1]);
-            case EQ: return ex(p->opr.op[0]) == ex(p->opr.op[1]);
-            case AND: return ex(p->opr.op[0]) && ex(p->opr.op[1]);
-            case OR:  return ex(p->opr.op[0]) || ex(p->opr.op[1]);
+            // case UMINUS: return -ex(p->opr.op[0]);
+            // case '+': return ex(p->opr.op[0]) + ex(p->opr.op[1]);
+            // case '-': return ex(p->opr.op[0]) - ex(p->opr.op[1]);
+            // case '*': return ex(p->opr.op[0]) * ex(p->opr.op[1]);
+            // case '/': return ex(p->opr.op[0]) / ex(p->opr.op[1]);
+            // case '<': return ex(p->opr.op[0]) < ex(p->opr.op[1]);
+            // case '>': return ex(p->opr.op[0]) > ex(p->opr.op[1]);
+            // case GE: return ex(p->opr.op[0]) >= ex(p->opr.op[1]);
+            // case LE: return ex(p->opr.op[0]) <= ex(p->opr.op[1]);
+            // case NE: return ex(p->opr.op[0]) != ex(p->opr.op[1]);
+            // case EQ: return ex(p->opr.op[0]) == ex(p->opr.op[1]);
+            // case AND: return ex(p->opr.op[0]) && ex(p->opr.op[1]);
+            // case OR:  return ex(p->opr.op[0]) || ex(p->opr.op[1]);
          }
    }
 }
-
 
 int main(int argc, char **argv) {
    extern FILE* yyin;
