@@ -1,12 +1,10 @@
 
 Mientras 0<1 Hacer
-    Inicio {
+    Inicio 
         Mientras no hayPared Hacer
-            Inicio {
+            Inicio
                     Avanzar;
-            }
             Fin
-            GirarIzquierda;
-    }   
+            GirarIzquierda;   
     Fin
 .
