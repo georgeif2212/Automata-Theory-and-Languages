@@ -1,0 +1,8 @@
+Mientras no hayPared Hacer
+    Inicio
+    if(hayPared){
+        GirarIzquierda;
+    }
+    Avanzar;
+Fin
+.
