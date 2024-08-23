@@ -3,8 +3,9 @@
 //#include "casio_plus.h"
 #include "y.tab.h"
 
-int yyerror( char *s );
+int yyerror(const char *s);
 int yylex();
+extern "C" int yywrap();
 
 %}
 
@@ -30,10 +31,10 @@ int yylex();
     /*"!="        return NE;*/
     /*"&&"        return AND;*/
     /*"||"        return OR;*/
-    /*"if"        return IF;*/
+    
     /*"else"      return ELSE;*/
     /*"print"     return PRINT; */
-
+"if"        return IF;
 "Avanzar"           return MOVE;
 "GirarIzquierda"    return TURNLEFT;
 "hayPared"          return ISWALL;
@@ -54,8 +55,12 @@ int yylex();
 
 %%
 
-int yyerror( char *s ) { fprintf( stderr, "%s\n", s); }
+int yyerror(const char *s) {
+    fprintf(stderr, "%s\n", s);
+    return 0;
+}
 
-int yywrap(void) {
+
+extern "C" int yywrap( void ) {
     return 1;
 }
