@@ -35,15 +35,15 @@ int yywrap();
     /*"else"      return ELSE;*/
     /*"print"     return PRINT; */
 
-"Avanzar"   return MOVE;
+"Avanzar"           return MOVE;
 "GirarIzquierda"    return TURNLEFT;
-"hayPared"  return ISWALL;
-"no"        return NO;
-"Mientras"     return WHILE;
-"Hacer"     return DO;
-"Inicio"    return START;
-"Fin"       return END;
-"Apagar"    return TURNOFF;
+"hayPared"          return ISWALL;
+"no"                return NO;
+"Mientras"          return WHILE;
+"Hacer"             return DO;
+"Inicio"            return START;
+"Fin"               return END;
+"Apagar"            return TURNOFF;
 
 
 
