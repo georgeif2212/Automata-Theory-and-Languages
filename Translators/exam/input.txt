@@ -1,8 +1,12 @@
-Mientras no hayPared Hacer
-    Inicio
-    if(hayPared){
-        GirarIzquierda;
-    }
-    Avanzar;
-Fin
+
+Mientras 0<1 Hacer
+    Inicio {
+        Mientras no hayPared Hacer
+            Inicio {
+                    Avanzar;
+            }
+            Fin
+            GirarIzquierda;
+    }   
+    Fin
 .
