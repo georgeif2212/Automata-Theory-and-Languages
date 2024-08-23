@@ -25,18 +25,27 @@ int yywrap();
 
 [-()<>=+*/,;{}.] { return *yytext; }
 
-">="        return GE;
-"<="        return LE;
-"=="        return EQ;
-"!="        return NE;
-"&&"        return AND;
-"||"        return OR;
-"while"     return WHILE;
-"for"       return FOR;
-"if"        return IF;
-"else"      return ELSE;
-"print"     return PRINT;
-"to"        return TO; 
+    /*">="        return GE;*/
+    /*"<="        return LE;*/
+    /*"=="        return EQ;*/
+    /*"!="        return NE;*/
+    /*"&&"        return AND;*/
+    /*"||"        return OR;*/
+    /*"if"        return IF;*/
+    /*"else"      return ELSE;*/
+    /*"print"     return PRINT; */
+
+"Avanzar"   return MOVE;
+"GirarIzquierda"    return TURNLEFT;
+"hayPared"  return ISWALL;
+"no"        return NO;
+"Mientras"     return WHILE;
+"Hacer"     return DO;
+"Inicio"    return START;
+"Fin"       return END;
+"Apagar"    return TURNOFF;
+
+
 
 
 
