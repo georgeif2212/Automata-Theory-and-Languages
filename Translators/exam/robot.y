@@ -4,7 +4,8 @@
 #include <stdarg.h>
 #include "robot_header.h"
 #include "lex.yy.c"
-#include "Maze.cpp"
+#include "Maze.h"
+
 
 /* prototypes */
 nodeType *opr(int oper, int nops, ...);
@@ -14,6 +15,7 @@ void freeNode(nodeType *p);
 int ex(nodeType *p);
 
 int sym[26]; /* Tabla de símbolos */
+MazeSimulator mazeSimulator;
 %}
 
 /* Declaración de Yacc que generará una Unión en C */
@@ -51,15 +53,12 @@ stmt:
          ';'                                   { $$ = opr(';', 2, NULL, NULL); }
          | expr ';'                            { $$ = $1; }
          | PRINT  expr ';'                     { $$ = opr(PRINT, 1, $2); }
-         | VARIABLE '=' expr ';'               { $$ = opr('=', 2, id($1), $3); }
+         // | VARIABLE '=' expr ';'               { $$ = opr('=', 2, id($1), $3); }
          | MOVE ';'                            { $$ = opr(MOVE, 0); }
          | TURNLEFT                            { $$ = opr(TURNLEFT, 0); }
-         | WHILE expr DO START stmt END        { $$ = opr(WHILE, 2, $2, $5); }
+         | WHILE expr DO START stmt END   { $$ = opr(WHILE, 2, $2, $5); }
          | TURNOFF                             { $$ = opr(TURNOFF, 0); }
-         // | FOR VARIABLE '=' expr TO expr '{' stmt_list '}' { $$ = opr(FOR, 4, id($2), $4, $6, $8); }
-         // | IF '(' expr ')' stmt %prec IFX      { $$ = opr(IF, 2, $3, $5); }
-         // | IF '(' expr ')' stmt ELSE stmt      { $$ = opr(IF, 3, $3, $5, $7); }
-         | stmt_list                           { $$ = $1; }
+         | '{' stmt_list '}'                   { $$ = $2; }
          ;
 
 stmt_list:
@@ -70,22 +69,8 @@ stmt_list:
 expr:
          INTEGER                 { $$ = con($1); }
          | VARIABLE        		{ $$ = id($1); }
-         | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
-         | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
-         | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
-         | expr '*' expr         { $$ = opr('*', 2, $1, $3); }
-         | expr '/' expr         { $$ = opr('/', 2, $1, $3); }
-         | expr '<' expr         { $$ = opr('<', 2, $1, $3); }
-         | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
-         | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
-         | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
-         | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
-         | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
-         | expr AND expr         { $$ = opr(AND, 2, $1, $3); }
-         | expr OR expr          { $$ = opr(OR, 2, $1, $3); }
          | ISWALL                { $$ = opr(ISWALL, 0); }
          | NO expr               { $$ = opr(NO, 1, $2); }
-         | '(' expr ')'          { $$ = $2; }
          ;
 
 %%
@@ -95,7 +80,7 @@ nodeType *con(int value) {
    nodeType *p;
 
    /* allocate node */
-   if ((p = malloc(sizeof(conNodeType))) == NULL)
+   if ((p = (nodeType*) malloc(sizeof(conNodeType))) == NULL)
       yyerror("out of memory");
 
    /* copy information */
@@ -109,7 +94,7 @@ nodeType *id(int i) {
    nodeType *p;
 
    /* allocate node */
-   if ((p = malloc(sizeof(idNodeType))) == NULL)
+   if ((p = (nodeType*) malloc(sizeof(conNodeType))) == NULL)
       yyerror("out of memory");
 
    /* copy information */
@@ -127,7 +112,7 @@ nodeType *opr(int oper, int nops, ...) {
 
    /* allocate node */
    size = sizeof(oprNodeType) + (nops-1) * sizeof(nodeType*);
-   if ((p = malloc(size)) == NULL)
+   if ((p = (nodeType*) malloc(size)) == NULL)
       yyerror("out of memory");
 
    /* copy information */
@@ -152,7 +137,6 @@ void freeNode(nodeType *p) {
    free (p);
 }
 
-MazeSimulator mazeSimulator;
 
 int ex(nodeType *p) {
 
@@ -166,47 +150,29 @@ int ex(nodeType *p) {
             case WHILE: while(ex(p->opr.op[0]))
                            ex(p->opr.op[1]);
                         return 0;
-            case MOVE: mazeSimulator.moveRobot();
+            case MOVE: mazeSimulator.drawMaze();
+                        mazeSimulator.moveRobot();
                         return 0;
             case ISWALL: mazeSimulator.wallAhead();
                         return 0;
             case NO:    return !ex(p->opr.op[0]);
-            case TURNLEFT: mazeSimulator.moveRobot(-1);
+            case TURNLEFT: mazeSimulator.turnRobot(-1);
                         return 0;
             case TURNOFF:printf("SE TERMINÓ EL PROGRAMA\n");
                         return 0;
-            // case IF: if (ex(p->opr.op[0]))
-            //             ex(p->opr.op[1]);
-            //          else if (p->opr.nops > 2)
-            //             ex(p->opr.op[2]);
-            //          return 0;
             case PRINT: printf("%d\n", ex(p->opr.op[0]));
                         return 0;
             case ';':   ex(p->opr.op[0]);
                         return ex(p->opr.op[1]);
-            case '=':   return sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]);
-            // case UMINUS: return -ex(p->opr.op[0]);
-            // case '+': return ex(p->opr.op[0]) + ex(p->opr.op[1]);
-            // case '-': return ex(p->opr.op[0]) - ex(p->opr.op[1]);
-            // case '*': return ex(p->opr.op[0]) * ex(p->opr.op[1]);
-            // case '/': return ex(p->opr.op[0]) / ex(p->opr.op[1]);
-            // case '<': return ex(p->opr.op[0]) < ex(p->opr.op[1]);
-            // case '>': return ex(p->opr.op[0]) > ex(p->opr.op[1]);
-            // case GE: return ex(p->opr.op[0]) >= ex(p->opr.op[1]);
-            // case LE: return ex(p->opr.op[0]) <= ex(p->opr.op[1]);
-            // case NE: return ex(p->opr.op[0]) != ex(p->opr.op[1]);
-            // case EQ: return ex(p->opr.op[0]) == ex(p->opr.op[1]);
-            // case AND: return ex(p->opr.op[0]) && ex(p->opr.op[1]);
-            // case OR:  return ex(p->opr.op[0]) || ex(p->opr.op[1]);
          }
    }
+   return 0;
 }
 
 int main(int argc, char **argv) {
    extern FILE* yyin;
-
+   mazeSimulator.drawMaze();
    yyin = fopen(argv[1], "r");
    yyparse();
-
    return 0;
 }
