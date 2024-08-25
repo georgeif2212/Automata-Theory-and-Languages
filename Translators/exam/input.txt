@@ -1,4 +1,11 @@
-
+Avanzar;
+Avanzar;
+Avanzar;
+Avanzar;
+GirarIzquierda;
+GirarIzquierda;   
+Avanzar;
+Avanzar;
 Mientras 0<1 Hacer
     Inicio 
         Mientras no hayPared Hacer
