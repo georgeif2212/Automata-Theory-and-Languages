@@ -4,26 +4,31 @@
 #include <stdarg.h>
 #include "casio_plus.h"
 #include "lex.yy.c"
+#include <string>
+#include <map>
 
 /* prototypes */
 nodeType *opr(int oper, int nops, ...);
-nodeType *id(int i);
+nodeType *id(const char* name);
 nodeType *con(int value);
 void freeNode(nodeType *p);
 int ex(nodeType *p);
+int yyerror(const char *s);
 
-int sym[26]; /* Tabla de símbolos */
+
+std::map<std::string, int> sym;
+// int sym[26]; /* Tabla de símbolos */
 %}
 
 /* Declaración de Yacc que generará una Unión en C */
 %union {
-    int iValue;                 /* Valor entero */
-    int sIndex;                /* Índice de la tabla de símbolos */
-    nodeType *nPtr;             /* Apuntador a nodo */
+      int iValue;                 /* Valor entero */
+      char name[30];               
+      nodeType *nPtr;             /* Apuntador a nodo */
 };
 
 %token <iValue> INTEGER
-%token <sIndex> VARIABLE
+%token <name> VARIABLE
 %token WHILE IF PRINT FOR TO AND OR
 %nonassoc IFX
 %nonassoc ELSE
@@ -89,7 +94,7 @@ nodeType *con(int value) {
    nodeType *p;
 
    /* allocate node */
-   if ((p = malloc(sizeof(conNodeType))) == NULL)
+   if((p = (nodeType*) malloc(sizeof(conNodeType))) == NULL)
       yyerror("out of memory");
 
    /* copy information */
@@ -99,19 +104,25 @@ nodeType *con(int value) {
    return p;
 }
 
-nodeType *id(int i) {
+nodeType *id(const char* name) {
    nodeType *p;
 
    /* allocate node */
-   if ((p = malloc(sizeof(idNodeType))) == NULL)
-      yyerror("out of memory");
+   if ((p = (nodeType*)malloc(sizeof(idNodeType))) == NULL)
+         yyerror("out of memory");
 
    /* copy information */
    p->type = typeId;
-   p->id.i = i;
+   p->id.name[sizeof(p->id.name) - 1] = '\0';
+   strncpy(p->id.name, name, sizeof(p->id.name) - 1);
+
+   if (sym.find(p->id.name) == sym.end()) {
+      sym[p->id.name] = 0;
+   }
 
    return p;
 }
+
 
 nodeType *opr(int oper, int nops, ...) {
    va_list ap;
@@ -121,7 +132,7 @@ nodeType *opr(int oper, int nops, ...) {
 
    /* allocate node */
    size = sizeof(oprNodeType) + (nops-1) * sizeof(nodeType*);
-   if ((p = malloc(size)) == NULL)
+   if ((p = (nodeType*)malloc(size)) == NULL)
       yyerror("out of memory");
 
    /* copy information */
@@ -148,18 +159,19 @@ void freeNode(nodeType *p) {
 
 
 int ex(nodeType *p) {
-
    if (!p) return 0;
 
    switch(p->type) {
       case typeCon: return p->con.value;
-      case typeId : return sym[p->id.i];
+      case typeId : return sym[p->id.name];
       case typeOpr: 
          switch(p->opr.oper) {
             case WHILE: while(ex(p->opr.op[0]))
                            ex(p->opr.op[1]);
                         return 0;
-            case FOR: for (sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]); sym[p->opr.op[0]->id.i] <= ex(p->opr.op[2]); sym[p->opr.op[0]->id.i]++) {
+            case FOR: for (sym[p->opr.op[0]->id.name] = ex(p->opr.op[1]); 
+                        sym[p->opr.op[0]->id.name] <= ex(p->opr.op[2]); 
+                        sym[p->opr.op[0]->id.name]++) {
                         ex(p->opr.op[3]);
                      }
                      return 0;
@@ -172,7 +184,7 @@ int ex(nodeType *p) {
                         return 0;
             case ';':   ex(p->opr.op[0]);
                         return ex(p->opr.op[1]);
-            case '=':   return sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]);
+            case '=':   return sym[p->opr.op[0]->id.name] = ex(p->opr.op[1]);
             case UMINUS: return -ex(p->opr.op[0]);
             case '+': return ex(p->opr.op[0]) + ex(p->opr.op[1]);
             case '-': return ex(p->opr.op[0]) - ex(p->opr.op[1]);
@@ -188,14 +200,20 @@ int ex(nodeType *p) {
             case OR:  return ex(p->opr.op[0]) || ex(p->opr.op[1]);
          }
    }
+   return 0;
 }
 
 
 int main(int argc, char **argv) {
    extern FILE* yyin;
 
-   yyin = fopen(argv[1], "r");
+   if (argc > 1) {
+         yyin = fopen(argv[1], "r");
+         if (!yyin) {
+            perror("Error al abrir el archivo");
+            return 1;
+         }
+   }
    yyparse();
-
    return 0;
 }

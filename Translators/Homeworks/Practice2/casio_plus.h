@@ -1,5 +1,9 @@
-
-typedef enum {typeCon, typeId, typeOpr} nodeEnum;
+typedef enum
+{
+    typeCon,
+    typeId,
+    typeOpr
+} nodeEnum;
 
 /* constants */
 typedef struct
@@ -12,7 +16,7 @@ typedef struct
 typedef struct
 {
     nodeEnum type;
-    int i; /* índice en tabla de símbolos */
+    char name[30];
 } idNodeType;
 
 /* operators */
@@ -27,10 +31,9 @@ typedef struct
 typedef union nodeTypeTag
 {
     nodeEnum type; /* type of node */
-
     conNodeType con; /* constants */
     idNodeType id;   /* identifiers */
     oprNodeType opr; /* operators */
 } nodeType;
 
-extern int sym[26];
+// extern std::map<std::string, int> sym;
