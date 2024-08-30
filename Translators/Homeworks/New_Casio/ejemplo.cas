@@ -1,0 +1,20 @@
+variable = 0;
+while (variable < 10) {
+    variable = variable + 1;
+    print variable;
+}
+
+caja = 11;
+if (caja > 0 && caja < 100){
+    print caja;
+}
+
+z = 12;
+if (caja == 0 || variable == 10){
+    print z;
+}
+
+for i = 1 to 5 {
+    print 2*i;
+}
+.
