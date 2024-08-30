@@ -1,27 +1,16 @@
 %{
 #include <stdlib.h>
-//#include "casio_plus.h"
 #include "y.tab.h"
 
-int yyerror( char *s );
-int yylex();
-int yywrap();
+extern "C" int yyerror(const char *s);
+extern "C" int yylex();
+extern "C" int yywrap();
+
 
 %}
 
 
 %%
-
-
-[a-z]          {
-                    yylval.sIndex = *yytext - 'a';
-                    return VARIABLE;
-                }
-
-[0-9]+         {
-                    yylval.iValue = atoi(yytext);
-                    return INTEGER;
-                }
 
 [-()<>=+*/,;{}.] { return *yytext; }
 
@@ -31,12 +20,23 @@ int yywrap();
 "!="        return NE;
 "&&"        return AND;
 "||"        return OR;
+
 "while"     return WHILE;
 "for"       return FOR;
 "if"        return IF;
 "else"      return ELSE;
 "print"     return PRINT;
 "to"        return TO; 
+
+[a-zA-Z][a-zA-Z0-9_]*    { 
+                            strcpy(yylval.name, yytext);
+                            return VARIABLE;
+                        }
+
+[0-9]+         {
+                    yylval.iValue = atoi(yytext);
+                    return INTEGER;
+                }
 
 
 
@@ -46,8 +46,11 @@ int yywrap();
 
 %%
 
-int yyerror( char *s ) { fprintf( stderr, "%s\n", s); }
+int yyerror(const char *s) {
+    fprintf(stderr, "%s\n", s);
+    return 0;
+}
 
-int yywrap(void) {
+extern "C" int yywrap( void ) {
     return 1;
 }
