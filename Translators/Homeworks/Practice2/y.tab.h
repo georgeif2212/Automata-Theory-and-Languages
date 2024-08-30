@@ -99,11 +99,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 19 "casio_plus.y"
+#line 24 "casio_plus.y"
 
-    int iValue;                 /* Valor entero */
-    int sIndex;                /* Índice de la tabla de símbolos */
-    nodeType *nPtr;             /* Apuntador a nodo */
+      int iValue;                 /* Valor entero */
+      char name[30];               
+      nodeType *nPtr;             /* Apuntador a nodo */
 
 #line 109 "y.tab.h"
 

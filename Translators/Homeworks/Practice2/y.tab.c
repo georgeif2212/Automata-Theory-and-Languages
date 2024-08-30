@@ -74,17 +74,22 @@
 #include <stdarg.h>
 #include "casio_plus.h"
 #include "lex.yy.c"
+#include <string>
+#include <map>
 
 /* prototypes */
 nodeType *opr(int oper, int nops, ...);
-nodeType *id(int i);
+nodeType *id(const char* name);
 nodeType *con(int value);
 void freeNode(nodeType *p);
 int ex(nodeType *p);
+int yyerror(const char *s);
 
-int sym[26]; /* Tabla de símbolos */
 
-#line 88 "y.tab.c"
+std::map<std::string, int> sym;
+// int sym[26]; /* Tabla de símbolos */
+
+#line 93 "y.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -173,13 +178,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 19 "casio_plus.y"
+#line 24 "casio_plus.y"
 
-    int iValue;                 /* Valor entero */
-    int sIndex;                /* Índice de la tabla de símbolos */
-    nodeType *nPtr;             /* Apuntador a nodo */
+      int iValue;                 /* Valor entero */
+      char name[30];               
+      nodeType *nPtr;             /* Apuntador a nodo */
 
-#line 183 "y.tab.c"
+#line 188 "y.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -625,10 +630,10 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    41,    41,    45,    46,    50,    51,    52,    53,    54,
-      55,    56,    57,    58,    62,    63,    67,    68,    69,    70,
-      71,    72,    73,    74,    75,    76,    77,    78,    79,    80,
-      81,    82
+       0,    46,    46,    50,    51,    55,    56,    57,    58,    59,
+      60,    61,    62,    63,    67,    68,    72,    73,    74,    75,
+      76,    77,    78,    79,    80,    81,    82,    83,    84,    85,
+      86,    87
 };
 #endif
 
@@ -1269,181 +1274,181 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: function '.'  */
-#line 41 "casio_plus.y"
+#line 46 "casio_plus.y"
                            { exit(0); }
-#line 1275 "y.tab.c"
+#line 1280 "y.tab.c"
     break;
 
   case 3: /* function: function stmt  */
-#line 45 "casio_plus.y"
+#line 50 "casio_plus.y"
                            { ex((yyvsp[0].nPtr)); freeNode((yyvsp[0].nPtr)); }
-#line 1281 "y.tab.c"
+#line 1286 "y.tab.c"
     break;
 
   case 5: /* stmt: ';'  */
-#line 50 "casio_plus.y"
+#line 55 "casio_plus.y"
                                                { (yyval.nPtr) = opr(';', 2, NULL, NULL); }
-#line 1287 "y.tab.c"
+#line 1292 "y.tab.c"
     break;
 
   case 6: /* stmt: expr ';'  */
-#line 51 "casio_plus.y"
+#line 56 "casio_plus.y"
                                                { (yyval.nPtr) = (yyvsp[-1].nPtr); }
-#line 1293 "y.tab.c"
+#line 1298 "y.tab.c"
     break;
 
   case 7: /* stmt: PRINT expr ';'  */
-#line 52 "casio_plus.y"
+#line 57 "casio_plus.y"
                                                { (yyval.nPtr) = opr(PRINT, 1, (yyvsp[-1].nPtr)); }
-#line 1299 "y.tab.c"
+#line 1304 "y.tab.c"
     break;
 
   case 8: /* stmt: VARIABLE '=' expr ';'  */
-#line 53 "casio_plus.y"
-                                               { (yyval.nPtr) = opr('=', 2, id((yyvsp[-3].sIndex)), (yyvsp[-1].nPtr)); }
-#line 1305 "y.tab.c"
+#line 58 "casio_plus.y"
+                                               { (yyval.nPtr) = opr('=', 2, id((yyvsp[-3].name)), (yyvsp[-1].nPtr)); }
+#line 1310 "y.tab.c"
     break;
 
   case 9: /* stmt: WHILE '(' expr ')' stmt  */
-#line 54 "casio_plus.y"
+#line 59 "casio_plus.y"
                                                { (yyval.nPtr) = opr(WHILE, 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1311 "y.tab.c"
+#line 1316 "y.tab.c"
     break;
 
   case 10: /* stmt: FOR VARIABLE '=' expr TO expr '{' stmt_list '}'  */
-#line 55 "casio_plus.y"
-                                                           { (yyval.nPtr) = opr(FOR, 4, id((yyvsp[-7].sIndex)), (yyvsp[-5].nPtr), (yyvsp[-3].nPtr), (yyvsp[-1].nPtr)); }
-#line 1317 "y.tab.c"
+#line 60 "casio_plus.y"
+                                                           { (yyval.nPtr) = opr(FOR, 4, id((yyvsp[-7].name)), (yyvsp[-5].nPtr), (yyvsp[-3].nPtr), (yyvsp[-1].nPtr)); }
+#line 1322 "y.tab.c"
     break;
 
   case 11: /* stmt: IF '(' expr ')' stmt  */
-#line 56 "casio_plus.y"
+#line 61 "casio_plus.y"
                                                { (yyval.nPtr) = opr(IF, 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1323 "y.tab.c"
+#line 1328 "y.tab.c"
     break;
 
   case 12: /* stmt: IF '(' expr ')' stmt ELSE stmt  */
-#line 57 "casio_plus.y"
+#line 62 "casio_plus.y"
                                                { (yyval.nPtr) = opr(IF, 3, (yyvsp[-4].nPtr), (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1329 "y.tab.c"
+#line 1334 "y.tab.c"
     break;
 
   case 13: /* stmt: '{' stmt_list '}'  */
-#line 58 "casio_plus.y"
+#line 63 "casio_plus.y"
                                                { (yyval.nPtr) = (yyvsp[-1].nPtr); }
-#line 1335 "y.tab.c"
+#line 1340 "y.tab.c"
     break;
 
   case 14: /* stmt_list: stmt  */
-#line 62 "casio_plus.y"
+#line 67 "casio_plus.y"
                                  { (yyval.nPtr) = (yyvsp[0].nPtr); }
-#line 1341 "y.tab.c"
+#line 1346 "y.tab.c"
     break;
 
   case 15: /* stmt_list: stmt_list stmt  */
-#line 63 "casio_plus.y"
+#line 68 "casio_plus.y"
                                  { (yyval.nPtr) = opr(';', 2, (yyvsp[-1].nPtr), (yyvsp[0].nPtr)); }
-#line 1347 "y.tab.c"
+#line 1352 "y.tab.c"
     break;
 
   case 16: /* expr: INTEGER  */
-#line 67 "casio_plus.y"
+#line 72 "casio_plus.y"
                                  { (yyval.nPtr) = con((yyvsp[0].iValue)); }
-#line 1353 "y.tab.c"
+#line 1358 "y.tab.c"
     break;
 
   case 17: /* expr: VARIABLE  */
-#line 68 "casio_plus.y"
-                                        { (yyval.nPtr) = id((yyvsp[0].sIndex)); }
-#line 1359 "y.tab.c"
+#line 73 "casio_plus.y"
+                                        { (yyval.nPtr) = id((yyvsp[0].name)); }
+#line 1364 "y.tab.c"
     break;
 
   case 18: /* expr: '-' expr  */
-#line 69 "casio_plus.y"
+#line 74 "casio_plus.y"
                                  { (yyval.nPtr) = opr(UMINUS, 1, (yyvsp[0].nPtr)); }
-#line 1365 "y.tab.c"
+#line 1370 "y.tab.c"
     break;
 
   case 19: /* expr: expr '+' expr  */
-#line 70 "casio_plus.y"
+#line 75 "casio_plus.y"
                                  { (yyval.nPtr) = opr('+', 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1371 "y.tab.c"
+#line 1376 "y.tab.c"
     break;
 
   case 20: /* expr: expr '-' expr  */
-#line 71 "casio_plus.y"
+#line 76 "casio_plus.y"
                                  { (yyval.nPtr) = opr('-', 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1377 "y.tab.c"
+#line 1382 "y.tab.c"
     break;
 
   case 21: /* expr: expr '*' expr  */
-#line 72 "casio_plus.y"
+#line 77 "casio_plus.y"
                                  { (yyval.nPtr) = opr('*', 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1383 "y.tab.c"
+#line 1388 "y.tab.c"
     break;
 
   case 22: /* expr: expr '/' expr  */
-#line 73 "casio_plus.y"
+#line 78 "casio_plus.y"
                                  { (yyval.nPtr) = opr('/', 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1389 "y.tab.c"
+#line 1394 "y.tab.c"
     break;
 
   case 23: /* expr: expr '<' expr  */
-#line 74 "casio_plus.y"
+#line 79 "casio_plus.y"
                                  { (yyval.nPtr) = opr('<', 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1395 "y.tab.c"
+#line 1400 "y.tab.c"
     break;
 
   case 24: /* expr: expr '>' expr  */
-#line 75 "casio_plus.y"
+#line 80 "casio_plus.y"
                                  { (yyval.nPtr) = opr('>', 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1401 "y.tab.c"
+#line 1406 "y.tab.c"
     break;
 
   case 25: /* expr: expr GE expr  */
-#line 76 "casio_plus.y"
+#line 81 "casio_plus.y"
                                  { (yyval.nPtr) = opr(GE, 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1407 "y.tab.c"
+#line 1412 "y.tab.c"
     break;
 
   case 26: /* expr: expr LE expr  */
-#line 77 "casio_plus.y"
+#line 82 "casio_plus.y"
                                  { (yyval.nPtr) = opr(LE, 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1413 "y.tab.c"
+#line 1418 "y.tab.c"
     break;
 
   case 27: /* expr: expr NE expr  */
-#line 78 "casio_plus.y"
+#line 83 "casio_plus.y"
                                  { (yyval.nPtr) = opr(NE, 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1419 "y.tab.c"
+#line 1424 "y.tab.c"
     break;
 
   case 28: /* expr: expr EQ expr  */
-#line 79 "casio_plus.y"
+#line 84 "casio_plus.y"
                                  { (yyval.nPtr) = opr(EQ, 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1425 "y.tab.c"
+#line 1430 "y.tab.c"
     break;
 
   case 29: /* expr: expr AND expr  */
-#line 80 "casio_plus.y"
+#line 85 "casio_plus.y"
                                  { (yyval.nPtr) = opr(AND, 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1431 "y.tab.c"
+#line 1436 "y.tab.c"
     break;
 
   case 30: /* expr: expr OR expr  */
-#line 81 "casio_plus.y"
+#line 86 "casio_plus.y"
                                  { (yyval.nPtr) = opr(OR, 2, (yyvsp[-2].nPtr), (yyvsp[0].nPtr)); }
-#line 1437 "y.tab.c"
+#line 1442 "y.tab.c"
     break;
 
   case 31: /* expr: '(' expr ')'  */
-#line 82 "casio_plus.y"
+#line 87 "casio_plus.y"
                                  { (yyval.nPtr) = (yyvsp[-1].nPtr); }
-#line 1443 "y.tab.c"
+#line 1448 "y.tab.c"
     break;
 
 
-#line 1447 "y.tab.c"
+#line 1452 "y.tab.c"
 
       default: break;
     }
@@ -1636,7 +1641,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 85 "casio_plus.y"
+#line 90 "casio_plus.y"
 
 
 
@@ -1644,7 +1649,7 @@ nodeType *con(int value) {
    nodeType *p;
 
    /* allocate node */
-   if ((p = malloc(sizeof(conNodeType))) == NULL)
+   if((p = (nodeType*) malloc(sizeof(conNodeType))) == NULL)
       yyerror("out of memory");
 
    /* copy information */
@@ -1654,19 +1659,25 @@ nodeType *con(int value) {
    return p;
 }
 
-nodeType *id(int i) {
+nodeType *id(const char* name) {
    nodeType *p;
 
    /* allocate node */
-   if ((p = malloc(sizeof(idNodeType))) == NULL)
-      yyerror("out of memory");
+   if ((p = (nodeType*)malloc(sizeof(idNodeType))) == NULL)
+         yyerror("out of memory");
 
    /* copy information */
    p->type = typeId;
-   p->id.i = i;
+   p->id.name[sizeof(p->id.name) - 1] = '\0';
+   strncpy(p->id.name, name, sizeof(p->id.name) - 1);
+
+   if (sym.find(p->id.name) == sym.end()) {
+      sym[p->id.name] = 0;
+   }
 
    return p;
 }
+
 
 nodeType *opr(int oper, int nops, ...) {
    va_list ap;
@@ -1676,7 +1687,7 @@ nodeType *opr(int oper, int nops, ...) {
 
    /* allocate node */
    size = sizeof(oprNodeType) + (nops-1) * sizeof(nodeType*);
-   if ((p = malloc(size)) == NULL)
+   if ((p = (nodeType*)malloc(size)) == NULL)
       yyerror("out of memory");
 
    /* copy information */
@@ -1703,18 +1714,19 @@ void freeNode(nodeType *p) {
 
 
 int ex(nodeType *p) {
-
    if (!p) return 0;
 
    switch(p->type) {
       case typeCon: return p->con.value;
-      case typeId : return sym[p->id.i];
+      case typeId : return sym[p->id.name];
       case typeOpr: 
          switch(p->opr.oper) {
             case WHILE: while(ex(p->opr.op[0]))
                            ex(p->opr.op[1]);
                         return 0;
-            case FOR: for (sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]); sym[p->opr.op[0]->id.i] <= ex(p->opr.op[2]); sym[p->opr.op[0]->id.i]++) {
+            case FOR: for (sym[p->opr.op[0]->id.name] = ex(p->opr.op[1]); 
+                        sym[p->opr.op[0]->id.name] <= ex(p->opr.op[2]); 
+                        sym[p->opr.op[0]->id.name]++) {
                         ex(p->opr.op[3]);
                      }
                      return 0;
@@ -1727,7 +1739,7 @@ int ex(nodeType *p) {
                         return 0;
             case ';':   ex(p->opr.op[0]);
                         return ex(p->opr.op[1]);
-            case '=':   return sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]);
+            case '=':   return sym[p->opr.op[0]->id.name] = ex(p->opr.op[1]);
             case UMINUS: return -ex(p->opr.op[0]);
             case '+': return ex(p->opr.op[0]) + ex(p->opr.op[1]);
             case '-': return ex(p->opr.op[0]) - ex(p->opr.op[1]);
@@ -1743,14 +1755,20 @@ int ex(nodeType *p) {
             case OR:  return ex(p->opr.op[0]) || ex(p->opr.op[1]);
          }
    }
+   return 0;
 }
 
 
 int main(int argc, char **argv) {
    extern FILE* yyin;
 
-   yyin = fopen(argv[1], "r");
+   if (argc > 1) {
+         yyin = fopen(argv[1], "r");
+         if (!yyin) {
+            perror("Error al abrir el archivo");
+            return 1;
+         }
+   }
    yyparse();
-
    return 0;
 }
